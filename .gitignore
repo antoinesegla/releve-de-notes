@@ -1,0 +1,26 @@
+# Fichiers Python temporaires
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.pyo
+*.spec
+
+# Dossiers de compilation PyInstaller - NE PAS METTRE SUR GITHUB
+dist/
+build/
+installer/
+
+# Données de l'application
+notes.json
+*.db
+
+# Fichiers Windows / Mac
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Environnement virtuel
+venv/
+.env
