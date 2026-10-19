@@ -82,11 +82,4 @@ releve-de-notes/
 
 Ce logiciel est distribué en tant que **Freeware** sous Contrat de Licence Utilisateur Final (CLUF). Utilisation gratuite, personnelle et scolaire. Voir `LICENSE.txt`.
 
-## 📧 Contact
 
-**Maryson SEGLA**
-- GitHub : [@seglamaryson](https://github.com/seglamaryson)
-- Localisation : Abomey-Calavi, Bénin
-
----
-*Fait avec ❤️ pour simplifier la vie des enseignants.*
