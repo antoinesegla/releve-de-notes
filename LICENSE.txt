@@ -1,7 +1,8 @@
 ================================================================================
 CONTRAT DE LICENCE UTILISATEUR FINAL (CLUF) - Relevé de Notes
 Version 1.0.0 - 18 octobre 2026
-Editeur : Maryson SEGLA
+Editeur : Maryson SEGLA - Porto-Novo, Bénin
+Pour les élèves du Collège Le Phénix
 ================================================================================
 
 VEUILLEZ LIRE ATTENTIVEMENT LE PRÉSENT CONTRAT AVANT D'INSTALLER LE LOGICIEL.
@@ -18,14 +19,13 @@ ARTICLE 1 - DÉFINITIONS
      incluant l'exécutable, les fichiers icone.png, logo.png, icone.ico,
      la documentation et tous les fichiers associés.
 
-1.2 "Éditeur" désigne Maryson SEGLA, auteur et titulaire des droits du Logiciel.
+1.2 "Éditeur" désigne Maryson SEGLA, développeur à Porto-Novo, Bénin.
 
-1.3 "Utilisateur" désigne toute personne physique ou morale installant ou
-     utilisant le Logiciel.
+1.3 "Utilisateur" désigne tout élève, notamment les élèves du Collège Le Phénix
+     de Porto-Novo, ou toute personne installant ou utilisant le Logiciel.
 
 1.4 "Données Utilisateur" désigne l'ensemble des informations saisies par
-     l'Utilisateur (noms, notes, moyennes) stockées localement dans le fichier
-     notes.json.
+     l'Utilisateur (noms, notes, moyennes) stockées localement dans notes.json.
 
 --------------------------------------------------------------------------------
 ARTICLE 2 - OBJET DE LA LICENCE
@@ -33,18 +33,17 @@ ARTICLE 2 - OBJET DE LA LICENCE
 Le présent contrat a pour objet de définir les conditions dans lesquelles
 l'Éditeur concède à l'Utilisateur un droit d'utilisation non exclusif et non
 transférable du Logiciel "Relevé de Notes", un logiciel de gestion et de
-calcul de relevés de notes scolaires.
+calcul de relevés de notes scolaires, conçu pour les élèves du Phénix.
 
 --------------------------------------------------------------------------------
 ARTICLE 3 - CONCESSION DE LICENCE
 
 3.1 Droit d'utilisation : L'Éditeur vous concède le droit d'installer et
      d'utiliser le Logiciel sur un nombre illimité d'ordinateurs vous
-     appartenant, à des fins personnelles, scolaires ou professionnelles.
+     appartenant, à des fins personnelles et scolaires.
 
 3.2 Type de licence : Le Logiciel est distribué en tant que Freeware. Son
-     utilisation est gratuite. Aucun paiement, abonnement ou redevance n'est
-     exigé.
+     utilisation est gratuite.
 
 3.3 Copies de sauvegarde : Vous êtes autorisé à effectuer une copie de
      sauvegarde du programme d'installation.
@@ -54,16 +53,11 @@ ARTICLE 4 - RESTRICTIONS
 
 L'Utilisateur s'engage à ne pas :
 
-a) Désassembler, décompiler, procéder à de l'ingénierie inverse ou tenter de
-   découvrir le code source du Logiciel ;
-b) Modifier, adapter, traduire ou créer des œuvres dérivées du Logiciel sans
-   autorisation écrite préalable de l'Éditeur ;
-c) Revendre, louer, prêter, distribuer ou sous-licencier le Logiciel à des fins
-   commerciales ;
-d) Supprimer ou altérer les mentions de propriété, les logos (icone.png,
-   logo.png) ou les informations de copyright ;
-e) Utiliser le Logiciel pour toute activité illégale ou portant atteinte aux
-   droits de tiers.
+a) Désassembler, décompiler, procéder à de l'ingénierie inverse ;
+b) Modifier, adapter, traduire ou créer des œuvres dérivées sans autorisation ;
+c) Revendre, louer, prêter, distribuer ou sous-licencier à des fins commerciales ;
+d) Supprimer ou altérer les mentions de propriété, les logos ou copyright ;
+e) Utiliser le Logiciel pour toute activité illégale.
 
 --------------------------------------------------------------------------------
 ARTICLE 5 - PROPRIÉTÉ INTELLECTUELLE
@@ -80,16 +74,13 @@ ARTICLE 5 - PROPRIÉTÉ INTELLECTUELLE
 ARTICLE 6 - DONNÉES PERSONNELLES ET CONFIDENTIALITÉ
 
 6.1 Stockage local : Le Logiciel fonctionne à 100% en local (hors-ligne). 
-     Toutes les Données Utilisateur (notes.json) sont stockées sur votre
-     ordinateur dans le dossier : 
-     C:\Users\VotreNom\Relevé de Notes\
+     Toutes les Données Utilisateur sont stockées sur votre ordinateur.
 
-6.2 Aucune collecte : L'Éditeur ne collecte, ne transmet et ne stocke AUCUNE
-     donnée personnelle sur un serveur distant. Aucune connexion Internet
-     n'est requise pour le fonctionnement.
+6.2 Aucune collecte : L'Éditeur ne collecte AUCUNE donnée personnelle sur un
+     serveur distant. Aucune connexion Internet n'est requise.
 
 6.3 Responsabilité des données : Vous êtes seul responsable de la sauvegarde
-     et de la confidentialité des relevés de notes que vous saisissez.
+     de vos relevés.
 
 --------------------------------------------------------------------------------
 ARTICLE 7 - MISES À JOUR
@@ -100,17 +91,10 @@ ARTICLE 7 - MISES À JOUR
 --------------------------------------------------------------------------------
 ARTICLE 8 - GARANTIE ET LIMITATION DE RESPONSABILITÉ
 
-8.1 Le Logiciel est fourni "EN L'ÉTAT" et "TEL QUEL", sans garantie d'aucune
-     sorte.
-
-8.2 L'Éditeur ne garantit pas que le Logiciel est exempt d'erreurs, ni que
-     son fonctionnement sera ininterrompu.
-
-8.3 Calculs : Bien que l'Éditeur apporte le plus grand soin aux formules de
-     calcul, il appartient à l'Utilisateur de vérifier les résultats.
-
-8.4 Le logiciel étant gratuit, la responsabilité de l'Éditeur est limitée à
-     0 euro dans les limites autorisées par la loi.
+8.1 Le Logiciel est fourni "EN L'ÉTAT" et "TEL QUEL", sans garantie.
+8.2 L'Éditeur ne garantit pas que le Logiciel est exempt d'erreurs.
+8.3 Calculs : Il appartient à l'Utilisateur de vérifier les résultats.
+8.4 Le logiciel étant gratuit, la responsabilité est limitée à 0 euro.
 
 --------------------------------------------------------------------------------
 ARTICLE 9 - SUPPORT TECHNIQUE
@@ -128,8 +112,7 @@ ARTICLE 10 - DURÉE ET RÉSILIATION
 --------------------------------------------------------------------------------
 ARTICLE 11 - DROIT APPLICABLE
 
-Le présent contrat est régi par le droit béninois. Tout litige relève de la
-compétence des tribunaux du Bénin.
+Le présent contrat est régi par le droit béninois.
 
 --------------------------------------------------------------------------------
 ARTICLE 12 - ACCEPTATION
@@ -139,7 +122,8 @@ lu et accepté l'intégralité du présent contrat.
 
 --------------------------------------------------------------------------------
 CONTACT ÉDITEUR : Maryson SEGLA
-Email : seglaantoine445@gmail.com
+Localisation : Porto-Novo, Bénin - Collège Le Phénix
+Email : seglamaryson@gmail.com
 GitHub : https://github.com/Antoinesegla/releve-de-notes
 Site officiel : https://antoinesegla.github.io/releve-de-notes/
 
