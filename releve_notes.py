@@ -1208,6 +1208,7 @@ class ReleveNotesApp(QMainWindow):
         self.table.setColumnCount(len(COLONNES_CLES))
         self.table.verticalHeader().setVisible(False)
         
+        # Pas de scrollbar verticale - le tableau s'allonge simplement
         self.table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
@@ -1216,19 +1217,11 @@ class ReleveNotesApp(QMainWindow):
 
         hauteur_entete = 38
         hauteur_ligne = 32
-        hauteur_totale = hauteur_entete + (len(MATIERES) + 1) * hauteur_ligne + 25
+        hauteur_totale = hauteur_entete + (len(MATIERES) + 1) * hauteur_ligne + 28
         self.table.setFixedHeight(hauteur_totale)
 
-        scroll_tableau = QScrollArea()
-        scroll_tableau.setWidgetResizable(True)
-        scroll_tableau.setFrameShape(QFrame.Shape.NoFrame)
-        scroll_tableau.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_tableau.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll_tableau.setWidget(self.table)
-        scroll_tableau.setFixedHeight(hauteur_totale + 10)
-
         self.table.cellChanged.connect(self.on_cell_changed)
-        vbox.addWidget(scroll_tableau)
+        vbox.addWidget(self.table)
         self.layout_principal.addWidget(carte)
 
     def creer_pied_de_page(self):
@@ -1247,7 +1240,7 @@ class ReleveNotesApp(QMainWindow):
         self.lbl_status.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
         hbox.addWidget(self.lbl_status, alignment=Qt.AlignmentFlag.AlignVCenter)
 
-        # Indicateur trimestre actuel en bas à droite comme un bouton
+        # Bouton 1er semestre / 2ème semestre en bas à droite
         self.btn_trimestre = QPushButton()
         self.btn_trimestre.setObjectName("btn_trimestre")
         self.btn_trimestre.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -1270,7 +1263,6 @@ class ReleveNotesApp(QMainWindow):
         hbox.addWidget(self.btn_trimestre, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         self.layout_principal.addLayout(hbox)
-        # Mettre à jour immédiatement après création
         self.mettre_a_jour_badge_trimestre()
 
     def basculer_semestre_depuis_badge(self):
@@ -1284,7 +1276,6 @@ class ReleveNotesApp(QMainWindow):
         label = t["semestre_1"] if self.semestre_courant == "S1" else t["semestre_2"]
         self.btn_trimestre.setText(f"📅  {label}")
         self.btn_trimestre.setToolTip("Cliquer pour changer de semestre")
-        # Forcer le repaint
         self.btn_trimestre.update()
 
     def charger_identite(self):
@@ -1304,22 +1295,16 @@ class ReleveNotesApp(QMainWindow):
 
     def rafraichir_tout(self):
         t = TRADUCTIONS[self.langue]
-        # Ajuster nombre de lignes si matières ajoutées/supprimées
         needed = len(MATIERES) + 1
         if self.table.rowCount() != needed:
             self.table.setRowCount(needed)
-            # ajuster hauteur
-            try:
-                hauteur_entete = 38
-                hauteur_ligne = 32
-                hauteur_totale = hauteur_entete + needed * hauteur_ligne + 25
-                self.table.setFixedHeight(hauteur_totale)
-                # parent scroll area
-                parent = self.table.parent()
-                if parent:
-                    parent.setFixedHeight(hauteur_totale + 10)
-            except Exception:
-                pass
+        try:
+            hauteur_entete = 38
+            hauteur_ligne = 32
+            hauteur_totale = hauteur_entete + needed * hauteur_ligne + 28
+            self.table.setFixedHeight(hauteur_totale)
+        except Exception:
+            pass
 
         self.table.blockSignals(True)
 
