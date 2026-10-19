@@ -294,7 +294,7 @@ TRADUCTIONS = {
     }
 }
 
-MATIERES = [
+MATIERES_DEFAUT = [
     ("Français", "fr", 3),
     ("Anglais", "an", 2),
     ("Mathématiques", "ma", 4),
@@ -309,6 +309,8 @@ MATIERES = [
     ("Électrotechnique", "el", 2),
     ("EPS", "ep", 1),
 ]
+
+MATIERES = list(MATIERES_DEFAUT)
 
 NB_INTERROS = 4
 NB_DEVOIRS = 3
@@ -368,21 +370,43 @@ Moyenne Générale = somme (Moyennes Trimestrielles × Coefficients) / somme des
 # ============================================================
 
 notes = {"S1": {}, "S2": {}}
-coefs = {code: c for _, code, c in MATIERES}
+coefs = {}  # vide au premier démarrage comme demandé
 semestre_courant = "S1"
 
 
 def charger_donnees():
-    global semestre_courant
+    global semestre_courant, MATIERES, coefs
     if not FICHIER_NOTES.exists():
+        MATIERES = list(MATIERES_DEFAUT)
+        coefs = {}
         return {}, False, "fr", "S1"
     try:
         with FICHIER_NOTES.open("r", encoding="utf-8") as f:
             data = json.load(f)
     except (json.JSONDecodeError, OSError):
+        MATIERES = list(MATIERES_DEFAUT)
+        coefs = {}
         return {}, False, "fr", "S1"
     if not isinstance(data, dict):
+        MATIERES = list(MATIERES_DEFAUT)
+        coefs = {}
         return {}, False, "fr", "S1"
+
+    # Matières personnalisées
+    matieres_lues = data.get("matieres")
+    if isinstance(matieres_lues, list) and matieres_lues:
+        try:
+            nouvelles = []
+            for m in matieres_lues:
+                if isinstance(m, (list, tuple)) and len(m) >= 2:
+                    nom = str(m[0])
+                    code = str(m[1]).lower().strip()[:10]
+                    c_def = m[2] if len(m) > 2 else 0
+                    nouvelles.append((nom, code, c_def))
+            if nouvelles:
+                MATIERES = nouvelles
+        except Exception:
+            MATIERES = list(MATIERES_DEFAUT)
 
     notes_lues = data.get("notes", {})
     coefs_lus = data.get("coefs", {})
@@ -397,13 +421,11 @@ def charger_donnees():
                 if s in notes_lues and isinstance(notes_lues[s], dict):
                     notes[s].update(notes_lues[s])
         else:
-            # ancien format: tout dans S1
             notes["S1"].update(notes_lues)
 
+    coefs = {}
     if isinstance(coefs_lus, dict):
         for code, valeur in coefs_lus.items():
-            if code not in coefs:
-                continue
             try:
                 valeur = float(valeur)
             except (TypeError, ValueError):
@@ -441,8 +463,8 @@ def calculer_matiere(code, semestre=None):
         valeurs.insert(0, moy_interro)
     moyenne = sum(valeurs) / len(valeurs) if valeurs else None
 
-    coef = coefs[code]
-    moy_coef = moyenne * coef if moyenne is not None else None
+    coef = coefs.get(code, 0)
+    moy_coef = moyenne * coef if moyenne is not None and coef else None
     return {
         "coef": coef,
         "interros": interros,
@@ -463,8 +485,9 @@ def resume(semestre=None):
         r = calculer_matiere(code, semestre)
         if r["moyenne"] is not None:
             evaluees.append((nom, r["moyenne"]))
-            total_points += r["moy_coef"]
-            total_coefs += r["coef"]
+            if r["coef"]:
+                total_points += r["moy_coef"] if r["moy_coef"] is not None else 0
+                total_coefs += r["coef"]
     return {
         "moyenne_generale": total_points / total_coefs if total_coefs else None,
         "total_points": total_points,
@@ -498,9 +521,15 @@ def fmt_moy(x):
     return "" if x is None else f"{x:.2f}"
 
 
+def fmt_coef(x):
+    if x is None or x == 0:
+        return ""
+    return f"{x:g}"
+
+
 def texte_ligne(nom, r):
     return [
-        f"{r['coef']:g}",
+        fmt_coef(r['coef']),
         nom,
         *[fmt_note(x) for x in r["interros"]],
         fmt_moy(r["moy_interro"]),
@@ -512,7 +541,7 @@ def texte_ligne(nom, r):
 
 def ligne_total_textes(res, langue="fr"):
     return [
-        f"{res['total_coefs']:g}",
+        fmt_coef(res['total_coefs']),
         TRADUCTIONS[langue]["total_libelle"],
         *[""] * 8,
         fmt_moy(res["moyenne_generale"]),
@@ -561,6 +590,19 @@ class DialogueParametres(QDialog):
         form_layout.addRow(self.lbl_semestre, self.combo_semestre)
 
         layout.addLayout(form_layout)
+
+        # --- Deux options demandées : ajouter / retirer matière ---
+        from PyQt6.QtWidgets import QInputDialog, QListWidget, QListWidgetItem
+        self._extra_imports = (QInputDialog, QListWidget)
+
+        btns_matieres = QHBoxLayout()
+        self.btn_ajouter_mat = QPushButton("➕ Ajouter une matière")
+        self.btn_retirer_mat = QPushButton("➖ Retirer une matière")
+        self.btn_ajouter_mat.clicked.connect(self.ajouter_matiere_simple)
+        self.btn_retirer_mat.clicked.connect(self.retirer_matiere_simple)
+        btns_matieres.addWidget(self.btn_ajouter_mat)
+        btns_matieres.addWidget(self.btn_retirer_mat)
+        layout.addLayout(btns_matieres)
 
         separateur = QFrame()
         separateur.setFrameShape(QFrame.Shape.HLine)
@@ -618,6 +660,78 @@ class DialogueParametres(QDialog):
         msg_box.setText(message)
         msg_box.setIcon(QMessageBox.Icon.Information)
         msg_box.exec()
+
+    def ajouter_matiere_simple(self):
+        from PyQt6.QtWidgets import QInputDialog
+        nom, ok = QInputDialog.getText(self, "Ajouter une matière", "Nom de la matière :")
+        if not ok:
+            return
+        nom = nom.strip()
+        if not nom:
+            QMessageBox.warning(self, "Erreur", "Le nom ne peut pas être vide.")
+            return
+        # Générer un code unique à partir du nom
+        base = "".join([c for c in nom.lower() if c.isalnum()])[:4]
+        if len(base) < 2:
+            base = (nom.lower()[:2] + "x")[:3]
+        code = base
+        idx = 1
+        exist = {c for _, c, _ in MATIERES}
+        while code in exist:
+            idx += 1
+            code = f"{base}{idx}"
+        MATIERES.append((nom, code, 0))
+        # coef reste vide (0)
+        self.app_parent.sauvegarder()
+        self.app_parent.rafraichir_tout()
+        QMessageBox.information(self, "Ajouté", f"Matière '{nom}' ajoutée au tableau.")
+
+    def retirer_matiere_simple(self):
+        from PyQt6.QtWidgets import QInputDialog, QListWidget, QListWidgetItem, QDialog, QVBoxLayout, QHBoxLayout, QPushButton
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Retirer une matière")
+        dlg.resize(360, 400)
+        v = QVBoxLayout(dlg)
+        v.addWidget(QLabel("Choisissez la matière à supprimer :"))
+        liste = QListWidget()
+        for nom, code, _ in MATIERES:
+            liste.addItem(f"{nom}  ({code})")
+        v.addWidget(liste)
+
+        h = QHBoxLayout()
+        h.addStretch()
+        btn_ann = QPushButton("Annuler")
+        btn_sup = QPushButton("Supprimer")
+        btn_sup.setStyleSheet(f"color: {ROUGE}; border-color: {ROUGE};")
+        h.addWidget(btn_ann)
+        h.addWidget(btn_sup)
+        v.addLayout(h)
+
+        btn_ann.clicked.connect(dlg.reject)
+
+        def do_sup():
+            row = liste.currentRow()
+            if row < 0:
+                QMessageBox.warning(dlg, "Aucune sélection", "Sélectionnez une matière.")
+                return
+            nom, code, _ = MATIERES[row]
+            rep = QMessageBox.question(dlg, "Confirmer", f"Supprimer '{nom}' ?\nLes notes de cette matière seront perdues.", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if rep != QMessageBox.StandardButton.Yes:
+                return
+            # Supprimer
+            MATIERES.pop(row)
+            coefs.pop(code, None)
+            for sem in SEMESTRES:
+                keys = [k for k in list(notes[sem].keys()) if k.startswith(code)]
+                for k in keys:
+                    notes[sem].pop(k, None)
+            self.app_parent.sauvegarder()
+            self.app_parent.rafraichir_tout()
+            dlg.accept()
+
+        btn_sup.clicked.connect(do_sup)
+        dlg.exec()
 
     def recalculer_textes(self):
         t = TRADUCTIONS[self.app_parent.langue]
@@ -702,6 +816,7 @@ class ReleveNotesApp(QMainWindow):
             "eleve": {k: v.text() for k, v in self.eleve_inputs.items()},
             "coefs": coefs,
             "notes": notes,
+            "matieres": MATIERES,
             "mode_clair": getattr(self, "mode_clair", False),
             "langue": getattr(self, "langue", "fr"),
             "semestre_courant": getattr(self, "semestre_courant", "S1"),
@@ -726,6 +841,11 @@ class ReleveNotesApp(QMainWindow):
         semestre_courant = nouveau_sem
         self.sauvegarder()
         self.rafraichir_tout()
+        self.mettre_a_jour_badge_trimestre()
+        if hasattr(self, 'lbl_status'):
+            t = TRADUCTIONS.get(self.langue, TRADUCTIONS["fr"])
+            label_sem = t["semestre_1"] if nouveau_sem=="S1" else t["semestre_2"]
+            self.lbl_status.setText(f"{t['pret']} — {label_sem}")
         # met à jour badge bas
         if hasattr(self, 'lbl_status'):
             t = TRADUCTIONS[self.langue]
@@ -867,6 +987,23 @@ class ReleveNotesApp(QMainWindow):
             self.lbl_sous_titre.setStyleSheet(f"color: {TEXTE_DOUX}; font-size: 12px;")
         if hasattr(self, "lbl_status"):
             self.lbl_status.setStyleSheet(f"color: {TEXTE_DOUX}; font-size: 11px;")
+        if hasattr(self, "btn_trimestre"):
+            self.btn_trimestre.setStyleSheet(f"""
+                QPushButton#btn_trimestre {{
+                    background-color: {CARTE_2};
+                    border: 1px solid {BORDURE};
+                    border-radius: 8px;
+                    padding: 9px 16px;
+                    font-weight: bold;
+                    font-size: 12px;
+                    color: {TEXTE};
+                }}
+                QPushButton#btn_trimestre:hover {{
+                    background-color: {"#e2e8f0" if self.mode_clair else "#252b33"};
+                    border-color: {ACCENT};
+                }}
+            """)
+            self.mettre_a_jour_badge_trimestre()
 
         self.sauvegarder()
         self.rafraichir_tout()
@@ -1096,19 +1233,59 @@ class ReleveNotesApp(QMainWindow):
 
     def creer_pied_de_page(self):
         hbox = QHBoxLayout()
+        hbox.setSpacing(12)
+        hbox.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.btn_parametres = QPushButton()
         self.btn_parametres.clicked.connect(self.ouvrir_parametres)
-        hbox.addWidget(self.btn_parametres)
+        hbox.addWidget(self.btn_parametres, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         hbox.addStretch()
 
         self.lbl_status = QLabel()
         self.lbl_status.setStyleSheet(f"color: {TEXTE_DOUX}; font-size: 11px;")
-        self.lbl_status.setAlignment(Qt.AlignmentFlag.AlignRight)
-        hbox.addWidget(self.lbl_status)
+        self.lbl_status.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+        hbox.addWidget(self.lbl_status, alignment=Qt.AlignmentFlag.AlignVCenter)
+
+        # Indicateur trimestre actuel en bas à droite comme un bouton
+        self.btn_trimestre = QPushButton()
+        self.btn_trimestre.setObjectName("btn_trimestre")
+        self.btn_trimestre.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_trimestre.setStyleSheet(f"""
+            QPushButton#btn_trimestre {{
+                background-color: {CARTE_2};
+                border: 1px solid {BORDURE};
+                border-radius: 8px;
+                padding: 9px 16px;
+                font-weight: bold;
+                font-size: 12px;
+                color: {TEXTE};
+            }}
+            QPushButton#btn_trimestre:hover {{
+                background-color: #252b33;
+                border-color: {ACCENT};
+            }}
+        """)
+        self.btn_trimestre.clicked.connect(self.basculer_semestre_depuis_badge)
+        hbox.addWidget(self.btn_trimestre, alignment=Qt.AlignmentFlag.AlignVCenter)
 
         self.layout_principal.addLayout(hbox)
+        # Mettre à jour immédiatement après création
+        self.mettre_a_jour_badge_trimestre()
+
+    def basculer_semestre_depuis_badge(self):
+        nouveau = "S2" if self.semestre_courant == "S1" else "S1"
+        self.changer_semestre(nouveau)
+
+    def mettre_a_jour_badge_trimestre(self):
+        if not hasattr(self, 'btn_trimestre'):
+            return
+        t = TRADUCTIONS.get(self.langue, TRADUCTIONS["fr"])
+        label = t["semestre_1"] if self.semestre_courant == "S1" else t["semestre_2"]
+        self.btn_trimestre.setText(f"📅  {label}")
+        self.btn_trimestre.setToolTip("Cliquer pour changer de semestre")
+        # Forcer le repaint
+        self.btn_trimestre.update()
 
     def charger_identite(self):
         for k, inp in self.eleve_inputs.items():
@@ -1127,6 +1304,23 @@ class ReleveNotesApp(QMainWindow):
 
     def rafraichir_tout(self):
         t = TRADUCTIONS[self.langue]
+        # Ajuster nombre de lignes si matières ajoutées/supprimées
+        needed = len(MATIERES) + 1
+        if self.table.rowCount() != needed:
+            self.table.setRowCount(needed)
+            # ajuster hauteur
+            try:
+                hauteur_entete = 38
+                hauteur_ligne = 32
+                hauteur_totale = hauteur_entete + needed * hauteur_ligne + 25
+                self.table.setFixedHeight(hauteur_totale)
+                # parent scroll area
+                parent = self.table.parent()
+                if parent:
+                    parent.setFixedHeight(hauteur_totale + 10)
+            except Exception:
+                pass
+
         self.table.blockSignals(True)
 
         for row, (nom, code, _) in enumerate(MATIERES):
@@ -1222,14 +1416,17 @@ class ReleveNotesApp(QMainWindow):
         texte = item.text().strip().replace(",", ".")
 
         if cle_col == "coef":
-            try:
-                valeur = float(texte)
-                if 0 < valeur <= COEF_MAX:
-                    coefs[code] = valeur
-                else:
-                    QMessageBox.warning(self, "Invalide", f"Le coef doit être entre 1 et {COEF_MAX}.")
-            except ValueError:
-                pass
+            if texte == "":
+                coefs.pop(code, None)
+            else:
+                try:
+                    valeur = float(texte)
+                    if 0 < valeur <= COEF_MAX:
+                        coefs[code] = valeur
+                    else:
+                        QMessageBox.warning(self, "Invalide", f"Le coef doit être entre 1 et {COEF_MAX}.")
+                except ValueError:
+                    pass
         else:
             cle_note = f"{code}{cle_col}"
             target_notes = notes[self.semestre_courant]
